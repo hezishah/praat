@@ -1,0 +1,23 @@
+# File: makefile.defs.linux.silent
+
+# System: Linux without sound
+# Paul Boersma, 10 September 2016
+
+CC = emcc -std=gnu99
+
+CXX = emcc -std=c++11
+
+CFLAGS = -D_FILE_OFFSET_BITS=64 -DNO_GRAPHICS -D_FILE_OFFSET_BITS=64 -Demscripten -Werror=missing-prototypes -Werror=implicit -Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O3 -s TOTAL_MEMORY=268435456 -pthread
+
+CXXFLAGS = $(CFLAGS) -Wshadow
+
+LINK = emcc
+
+EXECUTABLE = praat.bc
+
+LIBS = -lm -lpthread
+
+AR = emar 
+RANLIB = emranlib
+ICON =
+MAIN_ICON =
