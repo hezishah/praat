@@ -39,13 +39,17 @@
 	#include <windows.h>
 	#include <mmsystem.h>
 	#include "winport_off.h"
-#elif defined (linux)
+#elif defined (linux) || defined (emscripten)
 	#include <fcntl.h>
 	#if ! defined (NO_AUDIO)
 		#if defined (__OpenBSD__) || defined (__NetBSD__)
 			#include <soundcard.h>
 		#else
-			#include <sys/soundcard.h>
+            #if defined (emscripten)
+                #include "../sys/soundcard.h"
+            #else
+                #include <sys/soundcard.h>
+            #endif
 		#endif
 	#endif
 	#include <sys/ioctl.h>   /* ioctl */

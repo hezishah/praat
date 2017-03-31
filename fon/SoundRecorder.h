@@ -28,7 +28,7 @@
 #include "../external/portaudio/portaudio.h"
 #if defined (_WIN32)
 #elif defined (macintosh)
-#elif defined (linux)
+#elif defined (linux) || defined(emscripten)
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	#include <sys/ioctl.h>
@@ -38,8 +38,12 @@
 		#if defined (__OpenBSD__) || defined (__NetBSD__)
 			#include <soundcard.h>
 		#else
-			#include <sys/soundcard.h>
-		#endif
+            #if defined(emscripten)
+                #include "../sys/soundcard.h"
+            #else
+                #include <sys/soundcard.h>
+            #endif
+        #endif
 	#endif
 #endif
 
