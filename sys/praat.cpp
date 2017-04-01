@@ -1556,9 +1556,10 @@ void praat_run () {
 		Melder_assert (! str32str (U"hellogoodbye", U"oygo"));
 	}
 
+#ifndef emscripten
 	if (sizeof (off_t) < 8)
 		Melder_fatal (U"sizeof(off_t) is less than 8. Compile Praat with -D_FILE_OFFSET_BITS=64.");
-
+#endif
 	if (Melder_batch) {
 		if (thePraatStandAloneScriptText) {
 			try {

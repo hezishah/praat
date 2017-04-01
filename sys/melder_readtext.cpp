@@ -160,8 +160,10 @@ static char32 * _MelderFile_readText (MelderFile file, char **string8) {
 		if (fseeko (f, 0, SEEK_END) < 0) {
 			Melder_throw (U"Cannot count the bytes in the file.");
 		}
-		Melder_assert (sizeof (off_t) >= 8);
-		int64 length = ftello (f);
+#ifndef emscripten
+        Melder_assert (sizeof (off_t) >= 8);
+#endif
+        int64 length = ftello (f);
 		rewind (f);
 		if (length >= 2) {
 			int firstByte = fgetc (f), secondByte = fgetc (f);
