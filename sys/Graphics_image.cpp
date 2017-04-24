@@ -66,7 +66,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 			/*unsigned int cellWidth = (unsigned int) dx + 1;*/
 			unsigned int cellHeight = (unsigned int) (- (int) dy) + 1;
 			long ix, iy;
-			#if cairo
+            #if sdl
+                /* Todo : Handle cellArray */
+			#elif cairo
 				cairo_pattern_t *grey [256];
 				for (int igrey = 0; igrey < sizeof (grey) / sizeof (*grey); igrey ++) {
 					double v = igrey / ((double) (sizeof (grey) / sizeof (*grey)) - 1.0);
@@ -100,7 +102,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 					if (left < clipx1) left = clipx1;
 					if (right > clipx2) right = clipx2;
 					if (z_rgbt) {
-						#if cairo
+                        #if sdl
+                            // NYI
+						#elif cairo
 							// NYI
 						#elif gdi
 							// NYI
@@ -116,7 +120,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 							CGContextFillRect (my d_macGraphicsContext, CGRectMake (left, top, right - left, bottom - top));
 						#endif
 					} else {
-						#if cairo
+                        #if sdl
+                            /* Todo : Handle Fill Rect */
+						#elif cairo
 							long value = offset - scale * ( z_float ? z_float [iy] [ix] : z_byte [iy] [ix] );
 							cairo_set_source (my d_cairoGraphicsContext, grey [value <= 0 ? 0 : value >= sizeof (grey) / sizeof (*grey) ? sizeof (grey) / sizeof (*grey) : value]);
 							cairo_rectangle (my d_cairoGraphicsContext, left, top, right - left, bottom - top);
@@ -134,8 +140,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 					}
 				}
 			}
-			
-			#if cairo
+            #if sdl
+                /* Todo: Release if needed */
+			#elif cairo
 				for (int igrey = 0; igrey < sizeof (grey) / sizeof (*grey); igrey ++)
 					cairo_pattern_destroy (grey [igrey]);
 			#elif quartz
@@ -149,7 +156,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 		/*
 		 * Prepare for off-screen bitmap drawing.
 		 */
-		#if cairo
+        #if sdl
+            /* Todo: Handle prepare off-screen */
+		#elif cairo
 			long arrayWidth = clipx2 - clipx1;
 			long arrayHeight = clipy1 - clipy2;
 			trace (U"arrayWidth ", arrayWidth, U", arrayHeight ", arrayHeight);
@@ -198,7 +207,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 		/*
 		 * Draw into the bitmap.
 		 */
-		#if cairo
+        #if sdl
+                /* Todo: Handle off-screen bitmap draw */
+        #elif cairo
 			#define ROW_START_ADDRESS  (bits + (clipy1 - 1 - yDC) * scanLineLength)
 			#define PUT_PIXEL \
 				if (1) { \
@@ -264,6 +275,8 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 			#define ROW_START_ADDRESS  nullptr
 			#define PUT_PIXEL
 		#endif
+        #if sdl
+        #else
 		if (interpolate) {
 			try {
 				autoNUMvector <long> ileft (clipx1, clipx2);
@@ -370,10 +383,13 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 				}
 			} catch (MelderError) { Melder_clearError (); }
 		}
+        #endif
 		/*
 		 * Copy the bitmap to the screen.
 		 */
-		#if cairo
+        #if sdl
+                /* Todo: Handle copy off-screen bitmap to screen */
+        #elif cairo
 			cairo_matrix_t clip_trans;
 			cairo_matrix_init_identity (& clip_trans);
 			cairo_matrix_scale (& clip_trans, 1, -1);		// we painted in the reverse y-direction
@@ -434,7 +450,9 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me, double **z_floa
 		/*
 		 * Clean up.
 		 */
-		#if cairo
+        #if sdl
+            /* Todo: destroy */
+		#elif cairo
 			cairo_surface_destroy (sfc);
 		#elif gdi
 			DeleteBitmap (bitmap);

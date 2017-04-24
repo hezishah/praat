@@ -278,7 +278,9 @@ static void charSize (void *void_me, _Graphics_widechar *lc) {
 	iam (Graphics);
 	if (my screen) {
 		iam (GraphicsScreen);
-		#if cairo
+        #if sdl
+            /* Todo - Set char size lc->size */
+		#elif cairo
 			Melder_assert (my duringXor);
 			Longchar_Info info = lc -> karInfo;
 			int normalSize = my fontSize * my resolution / 72.0;
@@ -559,7 +561,9 @@ static void charDraw (void *void_me, int xDC, int yDC, _Graphics_widechar *lc,
 		if (lc -> link) my d_printf (my d_file, "0 0 0 setrgbcolor\n");
 	} else if (my screen) {
 		iam (GraphicsScreen);
-		#if cairo
+        #if sdl
+            /*Todo - Draw char to screen */
+		#elif cairo
 			if (my duringXor) {
 				#if ALLOW_GDK_DRAWING
 					static GdkFont *font = nullptr;
@@ -802,6 +806,391 @@ static void charDraw (void *void_me, int xDC, int yDC, _Graphics_widechar *lc,
 			}
 			return;
 		#endif
+		/*
+		 * First handle the most common case: text without rotation.
+		 */
+		if (my textRotation == 0.0) {
+			/*
+			 * Unrotated text could be a link. If so, it will be blue.
+			 */
+			#if cairo
+				if (my duringXor) {
+				} else {
+					if (lc -> link) _Graphics_setColour (me, Graphics_BLUE);
+				}
+			#elif win
+			#endif
+			/*
+			 * The most common case: a native font.
+			 */
+			#if cairo
+				if (my duringXor) {
+					#if ALLOW_GDK_DRAWING
+						static GdkFont *font = nullptr;
+						if (! font) {
+							font = gdk_font_load ("-*-courier-medium-r-normal--*-120-*-*-*-*-iso8859-1");
+							if (! font) {
+								font = gdk_font_load ("-*-courier 10 pitch-medium-r-normal--*-120-*-*-*-*-iso8859-1");
+							}
+						}
+						if (font) {
+							gdk_draw_text_wc (my d_window, font, my d_gdkGraphicsContext, xDC, yDC, (const GdkWChar *) codes, nchars);
+						}
+						gdk_flush ();
+					#endif
+				} else {
+					Melder_assert (my d_cairoGraphicsContext);
+					enum _cairo_font_slant slant   = (lc -> style & Graphics_ITALIC ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL);
+					enum _cairo_font_weight weight = (lc -> style & Graphics_BOLD   ? CAIRO_FONT_WEIGHT_BOLD  : CAIRO_FONT_WEIGHT_NORMAL);
+					cairo_set_font_size (my d_cairoGraphicsContext, lc -> size);
+					switch (font) {
+						case kGraphics_font_HELVETICA: cairo_select_font_face (my d_cairoGraphicsContext, "Helvetica", slant, weight); break;
+						case kGraphics_font_TIMES:     cairo_select_font_face (my d_cairoGraphicsContext, "Times New Roman", slant, weight); break;
+						case kGraphics_font_COURIER:   cairo_select_font_face (my d_cairoGraphicsContext, "Courier", slant, weight); break;
+						case kGraphics_font_PALATINO:  cairo_select_font_face (my d_cairoGraphicsContext, "Palatino", slant, weight); break;
+						case kGraphics_font_SYMBOL:    cairo_select_font_face (my d_cairoGraphicsContext, "Symbol", slant, weight); break;
+						case kGraphics_font_IPATIMES:  cairo_select_font_face (my d_cairoGraphicsContext, "Doulos SIL", slant, weight); break;
+						case kGraphics_font_DINGBATS:  cairo_select_font_face (my d_cairoGraphicsContext, "Dingbats", slant, weight); break;
+						default:                       cairo_select_font_face (my d_cairoGraphicsContext, "Sans", slant, weight); break;
+					}
+					cairo_move_to (my d_cairoGraphicsContext, xDC, yDC);
+					cairo_show_text (my d_cairoGraphicsContext, Melder_peek32to8 (codes));
+				}
+			#elif win
+				if (my duringXor) {
+					int descent = (1.0/216) * my fontSize * my resolution;
+					int ascent = (1.0/72) * my fontSize * my resolution;
+					int maxWidth = 800, maxHeight = 200;
+					int baseline = 100, top = baseline - ascent - 1, bottom = baseline + descent + 1;
+					static int inited = 0;
+					static HDC dc;
+					static HBITMAP bitmap;
+					if (! inited) {
+						dc = CreateCompatibleDC (my d_gdiGraphicsContext);
+						bitmap = CreateCompatibleBitmap (my d_gdiGraphicsContext, maxWidth, maxHeight);
+						SelectBitmap (dc, bitmap);
+						SetBkMode (dc, TRANSPARENT);   // not the default!
+						SelectPen (dc, GetStockPen (BLACK_PEN));
+						SelectBrush (dc, GetStockBrush (BLACK_BRUSH));
+						SetTextAlign (dc, TA_LEFT | TA_BASELINE | TA_NOUPDATECP);   // baseline is not the default!
+						inited = 1;
+					}
+					width += 4;   // for slant
+					Rectangle (dc, 0, top, width, bottom);
+					SelectFont (dc, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+					SetTextColor (dc, my d_winForegroundColour);
+					WCHAR *codesW = Melder_peek32toW (codes);
+					TextOutW (dc, 0, baseline, codesW, str16len ((const char16 *) codesW));
+					BitBlt (my d_gdiGraphicsContext, xDC, yDC - ascent, width, bottom - top, dc, 0, top, SRCINVERT);
+				} else {
+					SelectPen (my d_gdiGraphicsContext, my d_winPen), SelectBrush (my d_gdiGraphicsContext, my d_winBrush);
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, RGB (0, 0, 255)); else SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectFont (my d_gdiGraphicsContext, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+					WCHAR *codesW = Melder_peek32toW (codes);
+					TextOutW (my d_gdiGraphicsContext, xDC, yDC, codesW, str16len ((const char16 *) codesW));
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectPen (my d_gdiGraphicsContext, GetStockPen (BLACK_PEN)), SelectBrush (my d_gdiGraphicsContext, GetStockBrush (NULL_BRUSH));
+				}
+			#endif
+			/*
+			 * Back to normal colour.
+			 */
+
+			#if cairo
+				if (my duringXor) {
+				} else {
+					if (lc -> link) _Graphics_setColour (me, my colour);
+				}
+			#elif win
+			#endif
+		} else {
+			/*
+			 * Rotated text.
+			 */
+			#if cairo
+				Melder_assert (my d_cairoGraphicsContext);
+				enum _cairo_font_slant  slant  = (lc -> style & Graphics_ITALIC ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL);
+				enum _cairo_font_weight weight = (lc -> style & Graphics_BOLD   ? CAIRO_FONT_WEIGHT_BOLD  : CAIRO_FONT_WEIGHT_NORMAL);
+				cairo_set_font_size (my d_cairoGraphicsContext, lc -> size);
+				switch (font) {
+					case kGraphics_font_HELVETICA: cairo_select_font_face (my d_cairoGraphicsContext, "Helvetica", slant, weight); break;
+					case kGraphics_font_TIMES:     cairo_select_font_face (my d_cairoGraphicsContext, "Times"    , slant, weight); break;
+					case kGraphics_font_COURIER:   cairo_select_font_face (my d_cairoGraphicsContext, "Courier"  , slant, weight); break;
+					case kGraphics_font_PALATINO:  cairo_select_font_face (my d_cairoGraphicsContext, "Palatino" , slant, weight); break;
+					case kGraphics_font_SYMBOL:    cairo_select_font_face (my d_cairoGraphicsContext, "Symbol"   , slant, weight); break;
+					case kGraphics_font_IPATIMES:  cairo_select_font_face (my d_cairoGraphicsContext, "IPA Times", slant, weight); break;
+					case kGraphics_font_DINGBATS:  cairo_select_font_face (my d_cairoGraphicsContext, "Dingbats" , slant, weight); break;
+					default:                       cairo_select_font_face (my d_cairoGraphicsContext, "Sans"     , slant, weight); break;
+				}
+				cairo_save (my d_cairoGraphicsContext);
+				cairo_translate (my d_cairoGraphicsContext, xDC, yDC);
+				//cairo_scale (my d_cairoGraphicsContext, 1, -1);
+				cairo_rotate (my d_cairoGraphicsContext, - my textRotation * NUMpi / 180.0);
+				cairo_move_to (my d_cairoGraphicsContext, 0, 0);
+				cairo_show_text (my d_cairoGraphicsContext, Melder_peek32to8 (codes));
+				cairo_restore (my d_cairoGraphicsContext);
+				return;
+			#elif win
+				if (1) {
+					SelectPen (my d_gdiGraphicsContext, my d_winPen), SelectBrush (my d_gdiGraphicsContext, my d_winBrush);
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, RGB (0, 0, 255)); else SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectFont (my d_gdiGraphicsContext, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+					int restore = SaveDC (my d_gdiGraphicsContext);
+					SetGraphicsMode (my d_gdiGraphicsContext, GM_ADVANCED);
+					double a = my textRotation * NUMpi / 180.0, cosa = cos (a), sina = sin (a);
+					XFORM rotate = { (float) cosa, (float) - sina, (float) sina, (float) cosa, 0, 0 };
+					ModifyWorldTransform (my d_gdiGraphicsContext, & rotate, MWT_RIGHTMULTIPLY);
+					XFORM translate = { 1, 0, 0, 1, (float) xDC, (float) yDC };
+					ModifyWorldTransform (my d_gdiGraphicsContext, & translate, MWT_RIGHTMULTIPLY);
+					WCHAR *codesW = Melder_peek32toW (codes);
+					TextOutW (my d_gdiGraphicsContext, 0 /*xDC*/, 0 /*yDC*/, codesW, str16len ((const char16 *) codesW));
+					RestoreDC (my d_gdiGraphicsContext, restore);
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectPen (my d_gdiGraphicsContext, GetStockPen (BLACK_PEN)), SelectBrush (my d_gdiGraphicsContext, GetStockBrush (NULL_BRUSH));
+					return;
+				}
+			#endif
+			int ascent = (1.0/72) * my fontSize * my resolution;
+			int descent = (1.0/216) * my fontSize * my resolution;
+			int ix, iy /*, baseline = 1 + ascent * 2*/;
+			double cosa, sina;
+			#if win
+				int maxWidth = 1000, maxHeight = 600;   // BUG: printer???
+				int baseline = maxHeight / 4, top = baseline - ascent - 1, bottom = baseline + descent + 1;
+				static int inited = 0;
+				static HDC dc;
+				static HBITMAP bitmap;
+				if (! inited) {
+					dc = CreateCompatibleDC (my d_gdiGraphicsContext);
+					bitmap = CreateBitmap (/*my d_gdiGraphicsContext,*/ maxWidth, maxHeight, 1, 1, nullptr);
+					SelectBitmap (dc, bitmap);
+					inited = 1;
+				}
+			#endif
+			width += 4;   // leave room for slant
+			#if win
+				SelectPen (dc, GetStockPen (WHITE_PEN));
+				SelectBrush (dc, GetStockBrush (WHITE_BRUSH));
+				SetTextAlign (dc, TA_LEFT | TA_BASELINE | TA_NOUPDATECP);   // baseline is not the default!
+				Rectangle (dc, 0, top, maxWidth, bottom + 1);
+				//Rectangle (dc, 0, 0, maxWidth, maxHeight);
+				SelectPen (dc, GetStockPen (BLACK_PEN));
+				SelectBrush (dc, GetStockBrush (NULL_BRUSH));
+				SelectFont (dc, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+				WCHAR *codesW = Melder_peek32toW (codes);
+				TextOutW (dc, 0, baseline, codesW, str16len ((const char16 *) codesW));
+			#endif
+			if (my textRotation == 90.0) { cosa = 0.0; sina = 1.0; }
+			else if (my textRotation == 270.0) { cosa = 0.0; sina = -1.0; }
+			else { double a = my textRotation * NUMpi / 180.0; cosa = cos (a); sina = sin (a); }
+			for (ix = 0; ix < width; ix ++) {
+				double dx1 = ix;
+				#if win
+					for (iy = top; iy <= bottom; iy ++) {
+						if (GetPixel (dc, ix, iy) == RGB (0, 0, 0)) {   // black?
+							int dy1 = iy - baseline;   // translate, rotate, translate
+							int xp = xDC + (int) (cosa * dx1 + sina * dy1);
+							int yp = yDC - (int) (sina * dx1 - cosa * dy1);
+							SetPixel (my d_gdiGraphicsContext, xp, yp, my d_winForegroundColour);
+						}
+					}
+				#endif
+			}
+		}
+		/*
+		 * First handle the most common case: text without rotation.
+		 */
+		if (my textRotation == 0.0) {
+			/*
+			 * Unrotated text could be a link. If so, it will be blue.
+			 */
+			#if cairo
+				if (my duringXor) {
+				} else {
+					if (lc -> link) _Graphics_setColour (me, Graphics_BLUE);
+				}
+			#elif win
+			#endif
+			/*
+			 * The most common case: a native font.
+			 */
+            #if sdl
+			#elif cairo
+				if (my duringXor) {
+					#if ALLOW_GDK_DRAWING
+						static GdkFont *font = nullptr;
+						if (! font) {
+							font = gdk_font_load ("-*-courier-medium-r-normal--*-120-*-*-*-*-iso8859-1");
+							if (! font) {
+								font = gdk_font_load ("-*-courier 10 pitch-medium-r-normal--*-120-*-*-*-*-iso8859-1");
+							}
+						}
+						if (font) {
+							gdk_draw_text_wc (my d_window, font, my d_gdkGraphicsContext, xDC, yDC, (const GdkWChar *) codes, nchars);
+						}
+						gdk_flush ();
+					#endif
+				} else {
+					Melder_assert (my d_cairoGraphicsContext);
+					enum _cairo_font_slant slant   = (lc -> style & Graphics_ITALIC ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL);
+					enum _cairo_font_weight weight = (lc -> style & Graphics_BOLD   ? CAIRO_FONT_WEIGHT_BOLD  : CAIRO_FONT_WEIGHT_NORMAL);
+					cairo_set_font_size (my d_cairoGraphicsContext, lc -> size);
+					switch (font) {
+						case kGraphics_font_HELVETICA: cairo_select_font_face (my d_cairoGraphicsContext, "Helvetica", slant, weight); break;
+						case kGraphics_font_TIMES:     cairo_select_font_face (my d_cairoGraphicsContext, "Times New Roman", slant, weight); break;
+						case kGraphics_font_COURIER:   cairo_select_font_face (my d_cairoGraphicsContext, "Courier", slant, weight); break;
+						case kGraphics_font_PALATINO:  cairo_select_font_face (my d_cairoGraphicsContext, "Palatino", slant, weight); break;
+						case kGraphics_font_SYMBOL:    cairo_select_font_face (my d_cairoGraphicsContext, "Symbol", slant, weight); break;
+						case kGraphics_font_IPATIMES:  cairo_select_font_face (my d_cairoGraphicsContext, "Doulos SIL", slant, weight); break;
+						case kGraphics_font_DINGBATS:  cairo_select_font_face (my d_cairoGraphicsContext, "Dingbats", slant, weight); break;
+						default:                       cairo_select_font_face (my d_cairoGraphicsContext, "Sans", slant, weight); break;
+					}
+					cairo_move_to (my d_cairoGraphicsContext, xDC, yDC);
+					cairo_show_text (my d_cairoGraphicsContext, Melder_peek32to8 (codes));
+				}
+			#elif win
+				if (my duringXor) {
+					int descent = (1.0/216) * my fontSize * my resolution;
+					int ascent = (1.0/72) * my fontSize * my resolution;
+					int maxWidth = 800, maxHeight = 200;
+					int baseline = 100, top = baseline - ascent - 1, bottom = baseline + descent + 1;
+					static int inited = 0;
+					static HDC dc;
+					static HBITMAP bitmap;
+					if (! inited) {
+						dc = CreateCompatibleDC (my d_gdiGraphicsContext);
+						bitmap = CreateCompatibleBitmap (my d_gdiGraphicsContext, maxWidth, maxHeight);
+						SelectBitmap (dc, bitmap);
+						SetBkMode (dc, TRANSPARENT);   // not the default!
+						SelectPen (dc, GetStockPen (BLACK_PEN));
+						SelectBrush (dc, GetStockBrush (BLACK_BRUSH));
+						SetTextAlign (dc, TA_LEFT | TA_BASELINE | TA_NOUPDATECP);   // baseline is not the default!
+						inited = 1;
+					}
+					width += 4;   // for slant
+					Rectangle (dc, 0, top, width, bottom);
+					SelectFont (dc, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+					SetTextColor (dc, my d_winForegroundColour);
+					WCHAR *codesW = Melder_peek32toW (codes);
+					TextOutW (dc, 0, baseline, codesW, str16len ((const char16 *) codesW));
+					BitBlt (my d_gdiGraphicsContext, xDC, yDC - ascent, width, bottom - top, dc, 0, top, SRCINVERT);
+				} else {
+					SelectPen (my d_gdiGraphicsContext, my d_winPen), SelectBrush (my d_gdiGraphicsContext, my d_winBrush);
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, RGB (0, 0, 255)); else SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectFont (my d_gdiGraphicsContext, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+					WCHAR *codesW = Melder_peek32toW (codes);
+					TextOutW (my d_gdiGraphicsContext, xDC, yDC, codesW, str16len ((const char16 *) codesW));
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectPen (my d_gdiGraphicsContext, GetStockPen (BLACK_PEN)), SelectBrush (my d_gdiGraphicsContext, GetStockBrush (NULL_BRUSH));
+				}
+			#endif
+			/*
+			 * Back to normal colour.
+			 */
+
+			#if cairo
+				if (my duringXor) {
+				} else {
+					if (lc -> link) _Graphics_setColour (me, my colour);
+				}
+			#elif win
+			#endif
+		} else {
+			/*
+			 * Rotated text.
+			 */
+            #if sdl
+                /* Todo - Draw Rotated Text */
+			#elif cairo
+				Melder_assert (my d_cairoGraphicsContext);
+				enum _cairo_font_slant  slant  = (lc -> style & Graphics_ITALIC ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL);
+				enum _cairo_font_weight weight = (lc -> style & Graphics_BOLD   ? CAIRO_FONT_WEIGHT_BOLD  : CAIRO_FONT_WEIGHT_NORMAL);
+				cairo_set_font_size (my d_cairoGraphicsContext, lc -> size);
+				switch (font) {
+					case kGraphics_font_HELVETICA: cairo_select_font_face (my d_cairoGraphicsContext, "Helvetica", slant, weight); break;
+					case kGraphics_font_TIMES:     cairo_select_font_face (my d_cairoGraphicsContext, "Times"    , slant, weight); break;
+					case kGraphics_font_COURIER:   cairo_select_font_face (my d_cairoGraphicsContext, "Courier"  , slant, weight); break;
+					case kGraphics_font_PALATINO:  cairo_select_font_face (my d_cairoGraphicsContext, "Palatino" , slant, weight); break;
+					case kGraphics_font_SYMBOL:    cairo_select_font_face (my d_cairoGraphicsContext, "Symbol"   , slant, weight); break;
+					case kGraphics_font_IPATIMES:  cairo_select_font_face (my d_cairoGraphicsContext, "IPA Times", slant, weight); break;
+					case kGraphics_font_DINGBATS:  cairo_select_font_face (my d_cairoGraphicsContext, "Dingbats" , slant, weight); break;
+					default:                       cairo_select_font_face (my d_cairoGraphicsContext, "Sans"     , slant, weight); break;
+				}
+				cairo_save (my d_cairoGraphicsContext);
+				cairo_translate (my d_cairoGraphicsContext, xDC, yDC);
+				//cairo_scale (my d_cairoGraphicsContext, 1, -1);
+				cairo_rotate (my d_cairoGraphicsContext, - my textRotation * NUMpi / 180.0);
+				cairo_move_to (my d_cairoGraphicsContext, 0, 0);
+				cairo_show_text (my d_cairoGraphicsContext, Melder_peek32to8 (codes));
+				cairo_restore (my d_cairoGraphicsContext);
+				return;
+			#elif win
+				if (1) {
+					SelectPen (my d_gdiGraphicsContext, my d_winPen), SelectBrush (my d_gdiGraphicsContext, my d_winBrush);
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, RGB (0, 0, 255)); else SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectFont (my d_gdiGraphicsContext, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+					int restore = SaveDC (my d_gdiGraphicsContext);
+					SetGraphicsMode (my d_gdiGraphicsContext, GM_ADVANCED);
+					double a = my textRotation * NUMpi / 180.0, cosa = cos (a), sina = sin (a);
+					XFORM rotate = { (float) cosa, (float) - sina, (float) sina, (float) cosa, 0, 0 };
+					ModifyWorldTransform (my d_gdiGraphicsContext, & rotate, MWT_RIGHTMULTIPLY);
+					XFORM translate = { 1, 0, 0, 1, (float) xDC, (float) yDC };
+					ModifyWorldTransform (my d_gdiGraphicsContext, & translate, MWT_RIGHTMULTIPLY);
+					WCHAR *codesW = Melder_peek32toW (codes);
+					TextOutW (my d_gdiGraphicsContext, 0 /*xDC*/, 0 /*yDC*/, codesW, str16len ((const char16 *) codesW));
+					RestoreDC (my d_gdiGraphicsContext, restore);
+					if (lc -> link) SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
+					SelectPen (my d_gdiGraphicsContext, GetStockPen (BLACK_PEN)), SelectBrush (my d_gdiGraphicsContext, GetStockBrush (NULL_BRUSH));
+					return;
+				}
+			#endif
+			int ascent = (1.0/72) * my fontSize * my resolution;
+			int descent = (1.0/216) * my fontSize * my resolution;
+			int ix, iy /*, baseline = 1 + ascent * 2*/;
+			double cosa, sina;
+			#if win
+				int maxWidth = 1000, maxHeight = 600;   // BUG: printer???
+				int baseline = maxHeight / 4, top = baseline - ascent - 1, bottom = baseline + descent + 1;
+				static int inited = 0;
+				static HDC dc;
+				static HBITMAP bitmap;
+				if (! inited) {
+					dc = CreateCompatibleDC (my d_gdiGraphicsContext);
+					bitmap = CreateBitmap (/*my d_gdiGraphicsContext,*/ maxWidth, maxHeight, 1, 1, nullptr);
+					SelectBitmap (dc, bitmap);
+					inited = 1;
+				}
+			#endif
+			width += 4;   // leave room for slant
+			#if win
+				SelectPen (dc, GetStockPen (WHITE_PEN));
+				SelectBrush (dc, GetStockBrush (WHITE_BRUSH));
+				SetTextAlign (dc, TA_LEFT | TA_BASELINE | TA_NOUPDATECP);   // baseline is not the default!
+				Rectangle (dc, 0, top, maxWidth, bottom + 1);
+				//Rectangle (dc, 0, 0, maxWidth, maxHeight);
+				SelectPen (dc, GetStockPen (BLACK_PEN));
+				SelectBrush (dc, GetStockBrush (NULL_BRUSH));
+				SelectFont (dc, fonts [my resolutionNumber] [font] [lc -> size] [lc -> style]);
+				WCHAR *codesW = Melder_peek32toW (codes);
+				TextOutW (dc, 0, baseline, codesW, str16len ((const char16 *) codesW));
+			#endif
+			if (my textRotation == 90.0) { cosa = 0.0; sina = 1.0; }
+			else if (my textRotation == 270.0) { cosa = 0.0; sina = -1.0; }
+			else { double a = my textRotation * NUMpi / 180.0; cosa = cos (a); sina = sin (a); }
+			for (ix = 0; ix < width; ix ++) {
+				double dx1 = ix;
+				#if win
+					for (iy = top; iy <= bottom; iy ++) {
+						if (GetPixel (dc, ix, iy) == RGB (0, 0, 0)) {   // black?
+							int dy1 = iy - baseline;   // translate, rotate, translate
+							int xp = xDC + (int) (cosa * dx1 + sina * dy1);
+							int yp = yDC - (int) (sina * dx1 - cosa * dy1);
+							SetPixel (my d_gdiGraphicsContext, xp, yp, my d_winForegroundColour);
+						}
+					}
+				#endif
+			}
+		}
 	}
 }
 
@@ -857,6 +1246,10 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 	 * Measure the size of each character.
 	 */
 	_Graphics_widechar *character;
+	#if cocoa
+    #if sdl
+        /* Todo - Measure char size */
+	#elif cocoa
 	#if quartz || cairo
 		#if cairo
 			if (! ((GraphicsScreen) me) -> d_cairoGraphicsContext) return;

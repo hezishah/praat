@@ -1,1 +1,1 @@
-emcc praat.bc --closure 0 -g2 -O0 -s TOTAL_MEMORY=268435456 -o index.html --embed-file experiments/
+emcc praat.bc --closure 0 -g2 -O0 -s DEMANGLE_SUPPORT=1 -s USE_PTHREADS=2 -s USE_SDL=2 -s USE_SDL_TTF=2 -s USE_SDL_IMAGE=2 -s TOTAL_MEMORY=268435456 -o index.html --embed-file experiments/  --embed-file fonts

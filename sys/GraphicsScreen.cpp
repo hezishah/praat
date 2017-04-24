@@ -20,6 +20,10 @@
 #include "Printer.h"
 #include "GuiP.h"
 
+#if gtk
+#if sdl
+    /*TopWin *top_win;*/
+#elif gtk
 #if cairo
 	#include <cairo/cairo-pdf.h>
 	static bool _GraphicsCairo_tryToInitializePango () {
@@ -47,7 +51,9 @@
 Thing_implement (GraphicsScreen, Graphics, 0);
 
 void structGraphicsScreen :: v_destroy () noexcept {
-	#if cairo
+    #if sdl
+        /* Todo : Handle any SDL Cleanup */
+	#elif cairo
 		#if ALLOW_GDK_DRAWING
 			if (d_gdkGraphicsContext) {
 				g_object_unref (d_gdkGraphicsContext);			
@@ -211,7 +217,9 @@ void structGraphicsScreen :: v_destroy () noexcept {
 }
 
 void structGraphicsScreen :: v_flushWs () {
-	#if cairo
+    #if sdl
+        /* Todo: Handle Flush */
+	#elif cairo
 		// Ik weet niet of dit is wat het zou moeten zijn ;)
 		//gdk_window_process_updates (d_window, true);   // this "works" but is incorrect because it's not the expose events that have to be carried out
 		//gdk_window_flush (d_window);
@@ -241,7 +249,9 @@ void Graphics_flushWs (Graphics me) {
 }
 
 void structGraphicsScreen :: v_clearWs () {
-	#if cairo
+    #if sdl
+        top_win -> clear();
+	#elif cairo
 		GdkRectangle rect;
 		if (our d_x1DC < our d_x2DC) {
 			rect.x = our d_x1DC;
@@ -328,6 +338,10 @@ void structGraphicsScreen :: v_updateWs () {
 	 * the idea is to generate an expose event to which the drawing area will
 	 * respond by redrawing its contents from the (changed) data.
 	 */
+	#if gtk
+    #if sdl
+        /* Todo: Handle Invalidate */
+	#elif gtk
 	#if cairo
 		//GdkWindow *window = gtk_widget_get_parent_window (GTK_WIDGET (my drawingArea -> d_widget));
 		GdkRectangle rect;
@@ -423,8 +437,10 @@ void Graphics_endMovieFrame (Graphics any, double frameDuration) {
 static int GraphicsScreen_init (GraphicsScreen me, void *voidDisplay, void *voidWindow) {
 
 	/* Fill in new members. */
-
-	#if cairo
+    #if sdl
+    /* Todo : Figure out Window Resolution */
+    my top_win=my d_drawingArea->d_shell->d_sdlWindow;
+	#elif cairo
 		my d_display = (GdkDisplay *) gdk_display_get_default ();
 		_GraphicsScreen_text_init (me);
 		#if ALLOW_GDK_DRAWING
@@ -526,6 +542,10 @@ autoGraphics Graphics_create_screenPrinter (void *display, void *window) {
 autoGraphics Graphics_create_xmdrawingarea (GuiDrawingArea w) {
 	trace (U"begin");
 	autoGraphicsScreen me = Thing_new (GraphicsScreen);
+	#if gtk
+    #if sdl
+    
+	#elif gtk
 	#if cairo
 		GtkRequisition realsize;
 		GtkAllocation allocation;
@@ -537,6 +557,10 @@ autoGraphics Graphics_create_xmdrawingarea (GuiDrawingArea w) {
 	Melder_assert (my d_drawingArea -> d_widget);
 	my screen = true;
 	my yIsZeroAtTheTop = true;
+	#if win
+    #if sdl
+        
+    #elif win
 	#if cairo
 		_GraphicsCairo_tryToInitializePango ();
 	#elif gdi
@@ -552,9 +576,37 @@ autoGraphics Graphics_create_xmdrawingarea (GuiDrawingArea w) {
 		GraphicsScreen_init (me.get(), XtDisplay (my d_drawingArea -> d_widget), XtWindow (my d_drawingArea -> d_widget));
 	#elif quartz
 		Graphics_init (me.get(), Gui_getResolution (nullptr));
+			GraphicsScreen_init (me.get(),
+								 my d_drawingArea -> d_widget,
+								 my d_drawingArea -> d_widget);
+	#else
+		#if gtk
+			Graphics_init (me.get(), Gui_getResolution (my d_drawingArea -> d_widget));
+			GraphicsScreen_init (me.get(), GTK_WIDGET (my d_drawingArea -> d_widget), GTK_WIDGET (my d_drawingArea -> d_widget));
+		#elif motif
+			Graphics_init (me.get(), Gui_getResolution (my d_drawingArea -> d_widget));
+			GraphicsScreen_init (me.get(), XtDisplay (my d_drawingArea -> d_widget), XtWindow (my d_drawingArea -> d_widget));
+		#endif
+			GraphicsScreen_init (me.get(),
+								 my d_drawingArea -> d_widget,
+								 my d_drawingArea -> d_widget);
+	#else
+        #if sdl
+            
+        #elif gtk
+			Graphics_init (me.get(), Gui_getResolution (my d_drawingArea -> d_widget));
+			GraphicsScreen_init (me.get(), GTK_WIDGET (my d_drawingArea -> d_widget), GTK_WIDGET (my d_drawingArea -> d_widget));
+		#elif motif
+			Graphics_init (me.get(), Gui_getResolution (my d_drawingArea -> d_widget));
+			GraphicsScreen_init (me.get(), XtDisplay (my d_drawingArea -> d_widget), XtWindow (my d_drawingArea -> d_widget));
+		#endif
 		GraphicsScreen_init (me.get(), my d_drawingArea -> d_widget, my d_drawingArea -> d_widget);
 	#endif
 
+	#if gtk
+    #if sdl
+        
+    #elif gtk
 	#if cairo
 		// fb: is really the request meant or rather the actual size, aka allocation?
 		gtk_widget_size_request (GTK_WIDGET (my d_drawingArea -> d_widget), & realsize);
@@ -743,7 +795,8 @@ autoGraphics Graphics_create_pdf (void *context, int resolution,
 	return me.move();
 }
 
-#if cairo
+#if sdl
+#elif cairo
 	void *Graphics_x_getCR (Graphics me) {
 		return ((GraphicsScreen) me) -> d_cairoGraphicsContext;
 	}

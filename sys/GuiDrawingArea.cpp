@@ -432,7 +432,11 @@ GuiDrawingArea GuiDrawingArea_create (GuiForm parent, int left, int right, int t
 	my d_keyBoss = boss;
 	my d_resizeCallback = resizeCallback;
 	my d_resizeBoss = boss;
-	#if gtk
+    #if sdl
+        my d_widget = new BgrWin(parent->d_shell->d_sdlWindow, Rect(left,top,right,bottom),"",0,0,0,0,cWhite);
+        _GuiObject_setUserData (my d_widget, me.get());
+        my v_positionInForm (my d_widget, left, right, top, bottom, parent);
+	#elif gtk
 		my d_widget = gtk_drawing_area_new ();
 		GdkEventMask mask = (GdkEventMask) (GDK_EXPOSURE_MASK   // receive exposure events
 			| GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK   // receive click events
@@ -505,7 +509,11 @@ GuiDrawingArea GuiDrawingArea_create (GuiScrolledWindow parent, int width, int h
 	my d_keyBoss = boss;
 	my d_resizeCallback = resizeCallback;
 	my d_resizeBoss = boss;
-	#if gtk
+    #if sdl
+        my d_widget = new BgrWin(parent->d_shell->d_sdlWindow, Rect(0,0,width,height),"",0,0,0,0,cWhite);
+        _GuiObject_setUserData (my d_widget, me.get());
+        my v_positionInScrolledWindow (my d_widget, width, height, parent);
+    #elif gtk
 		my d_widget = gtk_drawing_area_new ();
 		GdkEventMask mask = (GdkEventMask) (GDK_EXPOSURE_MASK   // receive exposure events
 			| GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK   // receive click events

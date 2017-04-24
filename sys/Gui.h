@@ -21,27 +21,44 @@
 /*
  * Determine the widget set.
  */
-#if defined (NO_GRAPHICS)
-	#define gtk 0
-	#define motif 0
-	#define cocoa 0
-#elif defined (UNIX)
-	#define gtk 1
-	#define motif 0
-	#define cocoa 0
-#elif defined (_WIN32)
-	#define gtk 0
-	#define motif 1
-	#define cocoa 0
-#elif defined (macintosh)
-	#define gtk 0
-	#define motif 0
-	#define cocoa 1
+#if sdl
+#else
+    #if defined (NO_GRAPHICS)
+        #define gtk 0
+        #define motif 0
+        #define cocoa 0
+        #define sdl 0
+    #elif defined (emscripten)
+        #define gtk 0
+        #define motif 0
+        #define cocoa 0
+        #define sdl 1
+    #elif defined (UNIX)
+        #define gtk 1
+        #define motif 0
+        #define cocoa 0
+        #define sdl 0
+    #elif defined (_WIN32)
+        #define gtk 0
+        #define motif 1
+        #define cocoa 0
+        #define sdl 0
+    #elif defined (macintosh)
+        #define gtk 0
+        #define motif 0
+        #define cocoa 1
+        #define sdl 0
+    #endif
 #endif
 
 #include "Collection.h"
 
-#if gtk
+#if sdl
+    #include <SDL.h>
+    #include <SDL_ttf.h>
+    #include <SDL_image.h>
+    #include "../external/SDL2-widgets/sdl-widgets.h"
+#elif gtk
 	#include <gtk/gtk.h>
 	#include <gdk/gdk.h>
 	#include <cairo/cairo.h>
@@ -88,6 +105,14 @@
 	#define True 1
 	#define False 0
 	typedef void *GuiObject;
+#elif sdl
+    typedef SDL_Window *Window;
+    typedef SDL_Renderer *Renderer;
+    typedef SDL_bool Boolean;
+    typedef SDL_Event XEvent;
+    #define True 1
+    #define False 0
+    typedef void *GuiObject;
 #elif cocoa
 	Thing_declare (GuiThing);
 	@protocol GuiCocoaAny
@@ -330,6 +355,8 @@ Thing_define (GuiShell, GuiForm) {
 	int d_width, d_height;
 	#if gtk
 		GtkWindow *d_gtkWindow;
+    #elif sdl
+        TopWin *d_sdlWindow;
 	#elif cocoa
 		GuiCocoaShell *d_cocoaShell;
 	#elif motif
@@ -602,6 +629,8 @@ Thing_define (GuiMenu, GuiThing) {
 	autoGuiButton d_cascadeButton;
 	#if gtk
 		GtkMenuItem *d_gtkMenuTitle;
+    #elif sdl
+            
 	#elif cocoa
 		GuiCocoaMenu *d_cocoaMenu;
 		GuiCocoaMenuItem *d_cocoaMenuItem;

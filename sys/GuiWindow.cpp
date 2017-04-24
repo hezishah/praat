@@ -121,6 +121,15 @@ GuiWindow GuiWindow_create (int x, int y, int width, int height, int minimumWidt
 	my d_goAwayCallback = goAwayCallback;
 	my d_goAwayBoss = goAwayBoss;
 	#if gtk
+    #if sdl
+        my d_sdlWindow =new TopWin("Praat-SDL",Rect(0,0,width,height),0,0,false,
+                                      []() {
+                                          /*top_win->clear();
+                                           draw_title_ttf->draw_string(top_win->render,"Hello world!",Point(20,40));*/
+                                      }
+                                      );
+	#elif gtk
+	#if gtk
 		(void) flags;
 		GuiGtk_initialize ();
 		my d_gtkWindow = (GtkWindow *) gtk_window_new (GTK_WINDOW_TOPLEVEL);

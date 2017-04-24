@@ -801,7 +801,9 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 #if defined (UNIX)
 	static void cb_sigusr1 (int signum) {
 		Melder_assert (signum == SIGUSR1);
-		#if 0
+        #if sdl
+            /* Todo: Handle Send event */
+		#elif 0
 			gboolean retval;
 			g_signal_emit_by_name (GTK_OBJECT (theCurrentPraatApplication -> topShell -> d_gtkWindow), "client-event", nullptr, & retval);
 		#else
@@ -820,7 +822,9 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 #endif
 
 #if defined (UNIX)
-	#if ALLOW_GDK_DRAWING && ! defined (NO_GRAPHICS)
+    #if sdl
+            /* Todo: Handle Background */
+	#elif ALLOW_GDK_DRAWING && ! defined (NO_GRAPHICS)
 		static gboolean cb_userMessage (GtkWidget /* widget */, GdkEventClient * /* event */, gpointer /* userData */) {
 			//Melder_casual (U"client event called");
 			autofile f;
@@ -1352,11 +1356,14 @@ void praat_init (const char32 *title, int argc, char **argv)
 		#if defined (UNIX) && ! defined (NO_GRAPHICS)
 			try {
 				autofile f = Melder_fopen (& pidFile, "a");
+            #if sdl
+            #else
 				#if ALLOW_GDK_DRAWING
 					fprintf (f, " %ld", (long) GDK_WINDOW_XID (GDK_DRAWABLE (GTK_WIDGET (theCurrentPraatApplication -> topShell -> d_gtkWindow) -> window)));
 				#else
 					fprintf (f, " %ld", (long) GDK_WINDOW_XID (gtk_widget_get_window (GTK_WIDGET (theCurrentPraatApplication -> topShell -> d_gtkWindow))));
 				#endif
+            #endif
 				f.close (& pidFile);
 			} catch (MelderError) {
 				Melder_clearError ();

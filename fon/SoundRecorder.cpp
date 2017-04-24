@@ -248,7 +248,10 @@ void structSoundRecorder :: v_destroy () noexcept {
 			}
 		#elif defined (macintosh)
 		#elif defined (UNIX)
+            #if sdl
+            #else
 			if (our fd != -1) close (our fd);
+            #endif
 		#endif
 	}
 	SoundRecorder_Parent :: v_destroy ();
@@ -431,10 +434,13 @@ static WORKPROC_RETURN workProc (WORKPROC_ARGS) {
 						 * Asynchronous recording on these systems: do nothing.
 						 */
 					#else
+                        #if sdl
+                        #else
 						// linux
 						if (my fd != -1)
 							stepje = read (my fd, (void *) buffertje, step * (sizeof (short) * my numberOfChannels)) / (sizeof (short) * my numberOfChannels);
-					#endif
+                        #endif
+                    #endif
 				}
 
 				if (my recording) {

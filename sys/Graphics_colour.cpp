@@ -80,7 +80,9 @@ const char32 * Graphics_Colour_name (Graphics_Colour colour) {
 void _Graphics_setColour (Graphics graphics, Graphics_Colour colour) {
 	if (graphics -> screen) {
 		GraphicsScreen me = static_cast <GraphicsScreen> (graphics);
-		#if cairo
+        #if sdl
+            cForeground = {(Uint8)(colour.red * 255),(Uint8)(colour.green * 255),(Uint8)(colour.blue * 255), 255};
+		#elif cairo
 			if (! my d_cairoGraphicsContext) return;
 			cairo_set_source_rgb (my d_cairoGraphicsContext, colour. red, colour. green, colour. blue);
 		#elif gdi
@@ -117,7 +119,9 @@ void Graphics_setColourScale (Graphics me, enum kGraphics_colourScale colourScal
 void _Graphics_setGrey (Graphics graphics, double fgrey) {
 	if (graphics -> screen) {
 		GraphicsScreen me = static_cast <GraphicsScreen> (graphics);
-		#if cairo
+        #if sdl
+            /* Todo - Hangle gray */
+		#elif cairo
 			if (! my d_cairoGraphicsContext) return;
 			if (fgrey < 0.0) fgrey = 0.0; else if (fgrey > 1.0) fgrey = 1.0;
 			cairo_set_source_rgb (my d_cairoGraphicsContext, fgrey, fgrey, fgrey);
@@ -150,7 +154,9 @@ void Graphics_setGrey (Graphics me, double grey) {
 static void highlight (Graphics graphics, long x1DC, long x2DC, long y1DC, long y2DC, int direction) {
 	if (graphics -> screen) {
 		GraphicsScreen me = static_cast <GraphicsScreen> (graphics);
-		#if cairo
+        #if sdl
+            /* Todo - Handle Highlight */
+		#elif cairo
 			if (! my d_cairoGraphicsContext) return;
 			int width = x2DC - x1DC, height = y1DC - y2DC;
 			if (width <= 0 || height <= 0) return;
@@ -261,7 +267,9 @@ static void highlight2 (Graphics graphics, long x1DC, long x2DC, long y1DC, long
 {
 	if (graphics -> screen) {
 		GraphicsScreen me = static_cast <GraphicsScreen> (graphics);
-		#if cairo
+        #if sdl
+            /* Todo - Handle Highlight2 */
+		#elif cairo
 			if (! my d_cairoGraphicsContext) return;
 			int width = x2DC - x1DC, height = y1DC - y2DC;
 			if (width <= 0 || height <= 0) return;
@@ -388,7 +396,9 @@ void Graphics_unhighlight2 (Graphics me, double x1WC, double x2WC, double y1WC, 
 void Graphics_xorOn (Graphics graphics, Graphics_Colour colour) {
 	if (graphics -> screen) {
 		GraphicsScreen me = static_cast <GraphicsScreen> (graphics);
-		#if cairo
+        #if sdl
+            /* Todo - Handle xorOn */
+		#elif cairo
 			GdkColor colourXorWhite { 0,
 				(uint16) ((uint16) (colour. red   * 65535.0) ^ (uint16) 0xFFFF),
 				(uint16) ((uint16) (colour. green * 65535.0) ^ (uint16) 0xFFFF),
@@ -417,7 +427,9 @@ void Graphics_xorOn (Graphics graphics, Graphics_Colour colour) {
 void Graphics_xorOff (Graphics graphics) {
 	if (graphics -> screen) {
 		GraphicsScreen me = static_cast <GraphicsScreen> (graphics);
-		#if cairo
+        #if sdl
+                /* Todo - Handle xorOff */
+        #elif cairo
 			GdkColor black { 0, 0x0000, 0x0000, 0x0000 };
 			#if ALLOW_GDK_DRAWING
 				gdk_gc_set_rgb_fg_color (my d_gdkGraphicsContext, & black);

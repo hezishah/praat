@@ -31,21 +31,21 @@
 #include "../external/portaudio/portaudio.h"
 
 #if defined (macintosh)
-	#include "macport_on.h"
+    #include "macport_on.h"
 	#include "pa_mac_core.h"
 	#include "macport_off.h"
 #elif defined (_WIN32)
-	#include "winport_on.h"
+    #include "winport_on.h"
 	#include <windows.h>
 	#include <mmsystem.h>
 	#include "winport_off.h"
-#elif defined (linux) || defined (emscripten)
-	#include <fcntl.h>
+#elif (defined (linux) || defined(__EMSCRIPTEN__) || sdl)
+    #include <fcntl.h>
 	#if ! defined (NO_AUDIO)
 		#if defined (__OpenBSD__) || defined (__NetBSD__)
 			#include <soundcard.h>
 		#else
-            #if defined (emscripten)
+            #if (defined(__EMSCRIPTEN__) || sdl)
                 #include "../sys/soundcard.h"
             #else
                 #include <sys/soundcard.h>
@@ -55,7 +55,7 @@
 	#include <sys/ioctl.h>   /* ioctl */
 	#include <unistd.h>   /* open write close read */
 #else
-	#include <fcntl.h>
+#include <fcntl.h>
 #endif
 
 static int ulaw2linear [] = 

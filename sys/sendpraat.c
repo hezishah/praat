@@ -52,9 +52,15 @@
 	#if defined (NO_GRAPHICS)
 		#define gtk 0
 	#else
-		#include <gtk/gtk.h>
-		#define gtk 1
-	#endif
+        #if defined (emscripten)
+            #define gtk 0
+            #define sdl 1
+            #include <SDL.h>
+        #else
+            #include <gtk/gtk.h>
+            #define gtk 1
+        #endif
+    #endif
 	#define win 0
 	#define mac 0
 #else

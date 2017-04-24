@@ -19,6 +19,7 @@ all:
 	$(MAKE) -C external/flac
 	$(MAKE) -C external/portaudio
 	$(MAKE) -C external/espeak
+	$(MAKE) -C external/SDL2-widgets
 	$(MAKE) -C kar
 	$(MAKE) -C num
 	$(MAKE) -C sys
@@ -42,6 +43,7 @@ all:
 		external/espeak/libespeak.a external/portaudio/libportaudio.a \
 		external/flac/libflac.a external/mp3/libmp3.a \
 		external/glpk/libglpk.a external/gsl/libgsl.a \
+		external/SDL2-widgets/sdl-widgets.a \
 		$(LIBS)
 
 clean:

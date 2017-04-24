@@ -45,7 +45,13 @@ static void psRevertLine (GraphicsPostscript me) {
 		my d_printf (my d_file, "%g setlinewidth\n", my resolution > 192 ? my resolution / 192.0 : 1.0);   // 0.375 point
 }
 
-#if cairo
+#if sdl
+    static void sdlPrepareLine (GraphicsScreen me) {
+        /* Todo: The Line width is:
+         * LINE_WIDTH_IN_PIXELS (me)
+         */
+    }
+#elif cairo
 	#if ALLOW_GDK_DRAWING
 		static void gdkPrepareLine (GraphicsScreen me) {
 			gdk_gc_set_line_attributes (my d_gdkGraphicsContext, my lineWidth,
@@ -160,7 +166,16 @@ static void psRevertLine (GraphicsPostscript me) {
 /* First level. */
 
 void structGraphicsScreen :: v_polyline (long numberOfPoints, double *xyDC, bool close) {
-	#if cairo
+    #if sdl
+        SDL_Point pnt[numberOfPoints + (close ? 1 : 0)];
+        for (int i=0;i<numberOfPoints;++i) { pnt[i].x=xyDC[i*2]; pnt[i].y=xyDC[i*2+1]; }
+        if (close)
+        {
+            pnt[numberOfPoints].x = xyDC[numberOfPoints*2];
+            pnt[numberOfPoints].y = xyDC[numberOfPoints*2+1];
+        }
+        SDL_RenderDrawLines(top_win->render.render,pnt,numberOfPoints + (close ? 1 : 0));
+	#elif cairo
 		if (duringXor) {
 			#if ALLOW_GDK_DRAWING
 				gdkPrepareLine (this);
@@ -274,7 +289,19 @@ void structGraphicsPostscript :: v_polyline (long numberOfPoints, double *xyDC, 
 }
 
 void structGraphicsScreen :: v_fillArea (long numberOfPoints, double *xyDC) {
-	#if cairo
+	#if sdl
+        Sint16 vx[numberOfPoints];
+        Sint16 vy[numberOfPoints];
+        SDL_PixelFormat fmt;
+        memset(&fmt,0,sizeof(fmt));
+        fmt.format = SDL_GetWindowPixelFormat(top_win->window);
+        for(int i=0;i<numberOfPoints;i++)
+        {
+            vx[i]=xyDC[i*2];
+            vy[i]=xyDC[i*2+1];
+        }
+        filledPolygonColor(top_win->render.render, vx, vy, numberOfPoints, SDL_MapRGB(&fmt,cForeground.r,cForeground.g,cForeground.b));
+    #elif cairo
 		if (our d_cairoGraphicsContext == nullptr) return;
 		// cairo_new_path (our d_cairoGraphicsContext); // move_to() automatically creates a new path
 		cairo_move_to (our d_cairoGraphicsContext, xyDC [0], xyDC [1]);
@@ -317,7 +344,10 @@ void structGraphicsPostscript :: v_fillArea (long numberOfPoints, double *xyDC) 
 
 void structGraphicsScreen :: v_rectangle (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
-	#if cairo
+    #if sdl
+        Rect rect = {(Sint16)x1DC,(Sint16)y1DC,(Uint16)x2DC,(Uint16)y2DC};
+        SDL_RenderDrawRect(top_win->render.render,&rect);
+	#elif cairo
 		if (! d_cairoGraphicsContext) return;
 		double width = x2DC - x1DC, height = y1DC - y2DC;
 		if (width <= 0.0 || height <= 0.0) return;
@@ -354,7 +384,10 @@ void structGraphicsPostscript :: v_rectangle (double x1DC, double x2DC, double y
 
 void structGraphicsScreen :: v_fillRectangle (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
-	#if cairo
+    #if sdl
+        Rect rect = {(Sint16)x1DC,(Sint16)y1DC,(Uint16)x2DC,(Uint16)y2DC};
+        fill_rect(top_win->render.render,&rect,top_win->bgcol);
+	#elif cairo
 		if (! d_cairoGraphicsContext) return;
 		double width = x2DC - x1DC + 1.0, height = y1DC - y2DC + 1.0;
 		if (width <= 0.0 || height <= 0.0) return;
@@ -390,7 +423,9 @@ void structGraphicsPostscript :: v_fillRectangle (double x1DC, double x2DC, doub
 }
 
 void structGraphicsScreen :: v_circle (double xDC, double yDC, double rDC) {
-	#if cairo
+    #if sdl
+        circleColor(top_win->render.render,xDC, yDC, rDC,0x0);
+    #elif cairo
 		if (duringXor) {
 			#if ALLOW_GDK_DRAWING
 				gdkPrepareLine (this);
@@ -429,7 +464,9 @@ void structGraphicsPostscript :: v_circle (double xDC, double yDC, double rDC) {
 
 void structGraphicsScreen :: v_ellipse (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
-	#if cairo
+    #if sdl
+        ellipseColor(top_win->render.render, x1DC, x2DC, y1DC, y2DC, 0x0);
+	#elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairoPrepareLine (this);
 		cairo_new_path (d_cairoGraphicsContext);
@@ -477,7 +514,9 @@ void structGraphicsPostscript :: v_ellipse (double x1DC, double x2DC, double y1D
 }
 
 void structGraphicsScreen :: v_arc (double xDC, double yDC, double rDC, double fromAngle, double toAngle) {
-	#if cairo
+    #if sdl
+        arcColor(top_win->render.render, xDC, yDC, rDC, fromAngle, toAngle, 0x0);
+    #elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairoPrepareLine (this);
 		cairo_new_path (d_cairoGraphicsContext);
@@ -512,7 +551,9 @@ void structGraphicsPostscript :: v_arc (double xDC, double yDC, double rDC, doub
 /* Third level. */
 
 void structGraphicsScreen :: v_fillCircle (double xDC, double yDC, double rDC) {
-	#if cairo
+    #if sdl
+        filledCircleColor(top_win->render.render,xDC, yDC, rDC,0x0);
+    #elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairo_new_path (d_cairoGraphicsContext);
 		cairo_arc (d_cairoGraphicsContext, xDC, yDC, rDC, 0, 2 * M_PI);
@@ -542,7 +583,9 @@ void structGraphicsPostscript :: v_fillCircle (double xDC, double yDC, double rD
 
 void structGraphicsScreen :: v_fillEllipse (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
-	#if cairo
+    #if sdl
+        filledEllipseColor(top_win->render.render, x1DC, x2DC, y1DC, y2DC, 0x0);
+	#elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairo_new_path (d_cairoGraphicsContext);
 		cairo_save (d_cairoGraphicsContext);
@@ -580,7 +623,14 @@ void structGraphicsPostscript :: v_fillEllipse (double x1DC, double x2DC, double
 
 void structGraphicsScreen :: v_button (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
-	#if cairo
+    #if sdl
+        Sint16 x = (Sint16)(x1DC-0.5);
+        Sint16 y = (Sint16)(y1DC-0.5);
+        Uint16 xd = (Uint16)(x2DC-x1DC+0.5);
+        Uint16 yd = (Uint16)(y2DC-y1DC+0.5);
+        Rect rect = {x,y,xd,yd};
+        top_win->draw_raised(&rect,cForeground,TRUE);
+    #elif cairo
 		if (x2DC <= x1DC || y1DC <= y2DC) return;
 		
 		cairo_save (d_cairoGraphicsContext);
@@ -1066,7 +1116,9 @@ void structGraphics :: v_arrowHead (double xDC, double yDC, double angle) {
 }
 
 void structGraphicsScreen :: v_arrowHead (double xDC, double yDC, double angle) {
-	#if cairo
+    #if sdl
+        /*Todo - Draw Arrow */
+	#elif cairo
 		if (! our d_cairoGraphicsContext) return;
 		double size = 10.0 * our resolution * our arrowSize / 75.0;   // TODO: die 75 zou dat niet de scherm resolutie moeten worden?
 		cairo_new_path (our d_cairoGraphicsContext);

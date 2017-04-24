@@ -150,7 +150,19 @@ GuiMenuItem GuiMenu_addItem (GuiMenu menu, const char32 *title, uint32 flags,
 	bool toggle = flags & (GuiMenu_CHECKBUTTON | GuiMenu_RADIO_FIRST | GuiMenu_RADIO_NEXT | GuiMenu_TOGGLE_ON) ? true : false;
 	uint32 accelerator = flags & 127;
 	Melder_assert (title);
-	#if gtk
+    #if sdl
+        GuiWindow window = (GuiWindow) my d_shell;
+        my d_widget =new CmdMenu(new Button(window->d_sdlWindow ,Style(2,1,20),Rect(5,90,50,20),_Label((char *)title),[](Button* but) {
+            /*if (!menu->init(100,7,menu_cmd)) return;
+            menu->add_mbut("set rbut nr, title");
+            menu->add_mbut("window info");
+            menu->add_mbut("add text");
+            menu->add_mbut(_Label(0,disp_nr,3));
+            menu->add_mbut("choose file");
+            menu->add_mbut("change wdir");
+            menu->add_mbut("print widget tree");*/
+        }));
+	#elif gtk
 		static GSList *group = nullptr;
 		if (toggle) {
 			if (flags & (GuiMenu_RADIO_FIRST)) group = nullptr;

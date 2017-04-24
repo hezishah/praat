@@ -76,6 +76,23 @@ void Gui_getWindowPositioningBounds (double *x, double *y, double *width, double
 		if (y) *y = 0;
 		if (width) *width = gdk_screen_get_width (screen);
 		if (height) *height = gdk_screen_get_height (screen);
+	#elif defined (UNIX) && ! defined (NO_GRAPHICS)
+		if (x) *x = 0;
+		if (y) *y = 0;
+		if (width) *width = WidthOfScreen (DefaultScreenOfDisplay (XtDisplay (parent)));
+		if (height) *height = HeightOfScreen (DefaultScreenOfDisplay (XtDisplay (parent)));
+	#elif defined (UNIX) && ! defined (NO_GRAPHICS)
+        #if sdl
+        /* Todo: Get Screen Extents */
+        if (x) *x = 0;
+        if (y) *y = 0;
+        if (width) *width = 100;
+        if (height) *height = 100;
+        #else
+		if (x) *x = 0;
+		if (y) *y = 0;
+		if (width) *width = WidthOfScreen (DefaultScreenOfDisplay (XtDisplay (parent)));
+		if (height) *height = HeightOfScreen (DefaultScreenOfDisplay (XtDisplay (parent)));
 	#elif motif
 		#if 1
 			RECT rect;
@@ -107,7 +124,8 @@ void Gui_getWindowPositioningBounds (double *x, double *y, double *width, double
 		if (y) *y = rect. origin. y;
 		if (width) *width = rect. size. width;
 		if (height) *height = rect. size. height - 22;   // subtract title bar height (or is it the menu height?)
-	#endif
+        #endif
+    #endif
 }
 
 /* End of file Gui.cpp */

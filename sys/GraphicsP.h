@@ -68,15 +68,19 @@ Thing_define (GraphicsScreen, Graphics) {
 	structMelderFile d_file;
 	#if defined (NO_GRAPHICS)
 	#elif cairo
-		GdkDisplay *d_display;
-		#if ALLOW_GDK_DRAWING
-			GdkDrawable *d_window;
-			GdkGC *d_gdkGraphicsContext;
-		#else
-			GdkWindow *d_window;
-		#endif
-		cairo_surface_t *d_cairoSurface;
-		cairo_t *d_cairoGraphicsContext;
+        #if sdl
+            TopWin *top_win;
+        #elif gdk
+            GdkDisplay *d_display;
+            #if ALLOW_GDK_DRAWING
+                GdkDrawable *d_window;
+                GdkGC *d_gdkGraphicsContext;
+            #else
+                GdkWindow *d_window;
+            #endif
+            cairo_surface_t *d_cairoSurface;
+            cairo_t *d_cairoGraphicsContext;
+        #endif
 	#elif gdi
 		HWND d_winWindow;
 		HDC d_gdiGraphicsContext;
