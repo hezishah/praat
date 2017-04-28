@@ -420,7 +420,6 @@ static void Melder_trace_close (FILE *f) {
 	fprintf (f, "\n");
 	if (f != stderr) fclose (f);
 }
-
 void Melder_trace (const char *fileName, int lineNumber, const char *functionName, Melder_1_ARG) {
 	if (! Melder_isTracing || MelderFile_isNull (& theTracingFile)) return;
 	FILE *f = Melder_trace_open (fileName, lineNumber, functionName);

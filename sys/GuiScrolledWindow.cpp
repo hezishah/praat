@@ -67,7 +67,11 @@ GuiScrolledWindow GuiScrolledWindow_create (GuiForm parent, int left, int right,
 	autoGuiScrolledWindow me = Thing_new (GuiScrolledWindow);
 	my d_shell = parent -> d_shell;
 	my d_parent = parent;
-	#if gtk
+    #if sdl
+        my d_widget = new BgrWin(parent->d_shell->d_sdlWindow, Rect(left,top,right,bottom),"",0,0,0,0,cWhite);
+        _GuiObject_setUserData (my d_widget, me.get());
+        my v_positionInForm (my d_widget, left, right, top, bottom, parent);
+    #elif gtk
 		my d_widget = gtk_scrolled_window_new (nullptr, nullptr);
 		gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (my d_widget),
 			horizontalScrollbarPersistence == 0 ? GTK_POLICY_NEVER : horizontalScrollbarPersistence == 1 ? GTK_POLICY_AUTOMATIC : GTK_POLICY_ALWAYS,

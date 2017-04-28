@@ -481,8 +481,7 @@ void praat_removeObject (int i) {
 }
 
 static void praat_exit (int exit_code) {
-//Melder_setTracing (true);
-	int IOBJECT;
+    int IOBJECT;
 	#ifdef _WIN32
 		if (! theCurrentPraatApplication -> batch) {
 			Melder_assert (theCurrentPraatApplication);
@@ -1038,7 +1037,8 @@ extern "C" void praatlib_init () {
 
 void praat_init (const char32 *title, int argc, char **argv)
 {
-	bool weWereStartedFromTheCommandLine = tryToAttachToTheCommandLine ();
+    Melder_setTracing (true);
+    bool weWereStartedFromTheCommandLine = tryToAttachToTheCommandLine ();
 
 	for (int iarg = 0; iarg < argc; iarg ++) {
 		//Melder_casual (U"arg ", iarg, U": <<", Melder_peek8to32 (argv [iarg]), U">>");
@@ -1452,7 +1452,7 @@ static void executeStartUpFile (MelderDir startUpDirectory, const char32 *fileNa
 	#endif
 #endif
 
-void praat_run () {
+void  praat_run() {
 	trace (U"adding menus, second round");
 	praat_addMenus2 ();
 	trace (U"locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
@@ -1645,7 +1645,9 @@ void praat_run () {
 			}
 		}
 
-		#if gtk
+        #if sdl
+            get_events();
+		#elif gtk
 			//gtk_widget_add_events (G_OBJECT (theCurrentPraatApplication -> topShell), GDK_ALL_EVENTS_MASK);
 			trace (U"install GTK key snooper");
 			trace (U"locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));

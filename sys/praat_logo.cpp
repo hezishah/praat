@@ -63,7 +63,12 @@ void praat_setLogo (double width_mm, double height_mm, void (*draw) (Graphics g)
 static void gui_drawingarea_cb_expose (Thing /* me */, GuiDrawingArea_ExposeEvent event) {
 	if (! theLogo.graphics)
 		theLogo.graphics = Graphics_create_xmdrawingarea (theLogo.drawingArea);
-	#if gtk
+    #if sdl
+        (void) event;
+        if (! theLogo.graphics)
+            theLogo.graphics = Graphics_create_xmdrawingarea (theLogo.drawingArea);
+        theLogo.draw (theLogo.graphics.get());
+    #elif gtk
 		#if ALLOW_GDK_DRAWING
 			Graphics_x_setCR (theLogo.graphics.get(), gdk_cairo_create (GDK_DRAWABLE (GTK_WIDGET (event -> widget -> d_widget) -> window)));
 		#else

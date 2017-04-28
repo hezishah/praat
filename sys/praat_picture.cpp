@@ -1592,7 +1592,9 @@ void praat_picture_exit () {
 void praat_picture_open () {
 	Graphics_markGroup (GRAPHICS);   // we start a group of graphics output here
 	if (theCurrentPraatPicture == & theForegroundPraatPicture && ! theCurrentPraatApplication -> batch) {
-		#if gtk
+        #if sdl
+            GuiThing_show (dialog);
+        #elif gtk
 			gtk_window_present (GTK_WINDOW (dialog -> d_gtkWindow));
 		#elif motif
 			XtMapWidget (dialog -> d_xmShell);

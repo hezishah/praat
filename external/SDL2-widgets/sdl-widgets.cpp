@@ -259,7 +259,8 @@ static const Color5 *int2col5(int id,int i) {
 
 static void cross(Render render,int,int) {
   if (!pixm.cross_pm) pixm.cross_pm=create_pixmap(cross_xpm);
-  SDL_UpperBlit(pixm.cross_pm,0,render.surf,rp(3,3,0,0));
+  if (pixm.cross_pm)
+      SDL_UpperBlit(pixm.cross_pm,0,render.surf,rp(3,3,0,0));
 }
 
 static Rect* calc_overlap(Rect *a,Rect *b) {
@@ -528,6 +529,11 @@ void WinBase::init_gui() {
       title=TTF_RenderText_Blended(title_font,title_str,dark_blue_col);
       title_area.w=title->w; title_area.h=title->h;
     }
+  }
+  if(((unsigned long)(ontopw))&0xFFFFFFFF == 0x0)
+  {
+      printf("Backup 0x%08X",ontopw->backup);
+      return;
   }
   if (ontopw && !sdl_running && !hidden)
     SDL_BlitSurface(topw->render.surf,&tw_area,ontopw->backup,0); // else hide() won't work
@@ -3396,7 +3402,35 @@ void Lazy::kick() {
   SDL_mutexV(mtx);
 }
 
-static void loop(void);
+static void loop() {
+    SDL_Event ev;
+
+    if (!quit) {
+        while (true) {
+          SDL_mutexP(mtx);
+          if (uev_queue.is_empty()) {
+            SDL_mutexV(mtx);
+            break;
+          }
+          UQdat uev_dat;
+          uev_queue.pop(&uev_dat);
+          SDL_mutexV(mtx);
+          uev_dat.fun(uev_dat.par);
+        }
+        if (SDL_PollEvent(&ev)) {
+          if (ev.type==SDL_QUIT) {
+            quit=true;
+            return;
+          }
+          handle_events(&ev);
+        }
+        else {
+          SDL_mutexP(mtx);
+          SDL_CondWait(cond,mtx);
+          SDL_mutexV(mtx);
+        }
+    }
+}
 
 void get_events() {
 
@@ -3409,37 +3443,8 @@ void get_events() {
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, 0, 1);
 #else
-    while (!quit) { loop(); SDL_Delay(16); }
+    while (!quit) { loop(); /*SDL_Delay(16);*/ }
     sdl_quit(0);
 #endif
 
-}
-
-void loop() {
-    SDL_Event ev;
-  if (!quit) {
-    while (true) {
-      SDL_mutexP(mtx);
-      if (uev_queue.is_empty()) {
-        SDL_mutexV(mtx);
-        break;
-      }
-      UQdat uev_dat;
-      uev_queue.pop(&uev_dat);
-      SDL_mutexV(mtx);
-      uev_dat.fun(uev_dat.par);
-    }
-    if (SDL_PollEvent(&ev)) {
-      if (ev.type==SDL_QUIT) {
-        quit=true;
-		return;
-      }
-      handle_events(&ev);
-    }
-    else {
-      SDL_mutexP(mtx);
-      SDL_CondWait(cond,mtx);
-      SDL_mutexV(mtx);
-    }
-  }
 }

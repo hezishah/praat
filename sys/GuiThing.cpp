@@ -24,7 +24,10 @@ void structGuiThing :: v_destroy () noexcept {
 }
 
 void structGuiThing :: v_hide () {
-	#if gtk
+    #if sdl
+        if((BgrWin *)d_widget!=NULL)
+            ((BgrWin *)(d_widget)) -> hide();
+	#elif gtk
 		GuiObject parent = gtk_widget_get_parent (GTK_WIDGET (d_widget));
 		if (parent && GTK_IS_DIALOG (parent)) {   // I am the top GtkFixed of a dialog
 			gtk_widget_hide (GTK_WIDGET (parent));
@@ -67,7 +70,10 @@ void structGuiThing :: v_setSensitive (bool sensitive) {
 }
 
 void structGuiThing :: v_show () {
-	#if gtk
+    #if sdl
+        if((BgrWin *)d_widget!=NULL)
+            ((BgrWin *)(d_widget)) -> hidden = false;
+	#elif gtk
 		trace (U"showing widget ", Melder_pointer (d_widget));
 		GuiObject parent = gtk_widget_get_parent (GTK_WIDGET (d_widget));
 		trace (U"the parent widget is ", Melder_pointer (parent));

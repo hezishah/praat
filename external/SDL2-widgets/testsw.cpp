@@ -395,7 +395,7 @@ int main(int ac,char** av) {
   );
   sl1->set_vsval(3,1,false);
 
-  top_win=new TopWin("Test SDL-widgets",Rect(100,100,380,500),0,SDL_WINDOW_RESIZABLE,true,disp_topw,set_icon);
+  top_win=new TopWin("Test SDL-widgets",Rect(100,100,380,500),0,SDL_WINDOW_RESIZABLE,false,disp_topw,set_icon);
   cLightGrey=sdl_col(0xd0d0d0ff);
   edit_win->keep_on_top(); // will cover dummy_but which is instantiated later
   edit_win->bgcol=cLightGrey;

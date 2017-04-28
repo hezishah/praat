@@ -13,9 +13,9 @@ CXXFLAGS = $(CFLAGS) -Wshadow
 
 LINK = emcc
 
-EXE_EXT = bc
+EXE_EXT = .bc
 
-EXECUTABLE = praat.$(EXE_EXT)
+EXECUTABLE = praat$(EXE_EXT)
 
 AR = emar 
 RANLIB = emranlib

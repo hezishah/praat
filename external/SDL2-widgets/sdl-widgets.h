@@ -14,8 +14,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef __EMSCRIPTEN__
 #include <SDL.h>
 #include <SDL_ttf.h>
+#else
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#endif
 #include "shapes.h"
 
 extern const SDL_Color cNop, cWhite, cBlack, cGrey, cRed, cBlue;

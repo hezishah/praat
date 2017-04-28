@@ -7,20 +7,20 @@ CC = gcc -std=gnu99
 
 CXX = g++ -std=c++11
 
-CFLAGS = $(shell sdl2-config --cflags) -DUNIX -Dsdl=1 -D_FILE_OFFSET_BITS=64 -Werror=missing-prototypes -Werror=implicit -Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O0 -g2 -pthread
+CFLAGS = $$(sdl2-config --cflags) -DUNIX -Dsdl=1 -D_FILE_OFFSET_BITS=64 -Werror=missing-prototypes -Werror=implicit -Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O0 -g 
 
-CXXFLAGS = $(CFLAGS) -Wshadow  -I/usr/local/Cellar/sdl2/2.0.5/include/SDL2 -I/usr/local/Cellar/sdl2_ttf/2.0.14/include/SDL2 -I/usr/local/Cellar/sdl2_image/2.0.1_2/include/SDL2
+CXXFLAGS = $(CFLAGS) -Wshadow
 
-LFLAGS = $(shell sdl2-config --cflags)
+LFLAGS = $$(sdl2-config --cflags)
 
 LINK = g++
 
 EXECUTABLE = praat
 
-LIBS = -lm -lpthread -lsdl2 -lsdl2_image -lsdl2_ttf
+LIBS = $$(sdl2-config --libs) -lSDL2_ttf
 
 AR = ar
-RANLIB = ls
+RANLIB = ranlib
 ICON =
 MAIN_ICON =
 

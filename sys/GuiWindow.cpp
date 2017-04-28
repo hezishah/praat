@@ -122,12 +122,15 @@ GuiWindow GuiWindow_create (int x, int y, int width, int height, int minimumWidt
 	my d_goAwayBoss = goAwayBoss;
 	#if gtk
     #if sdl
-        my d_sdlWindow =new TopWin("Praat-SDL",Rect(0,0,width,height),0,0,false,
+        my d_sdlWindow =new TopWin("Praat-SDL",Rect(x,y,width,height),0,0,false,
                                       []() {
-                                          /*top_win->clear();
-                                           draw_title_ttf->draw_string(top_win->render,"Hello world!",Point(20,40));*/
+                                          /*my d_sdlWindow -> clear();
+                                          draw_title_ttf->draw_string(my d_sdlWindow -> render,"Hello praat!",Point(20,40));*/
                                       }
                                       );
+        my d_sdlWindow -> clear();
+        draw_title_ttf->draw_string(my d_sdlWindow -> render,"Hello praat!",Point(20,40));
+        
 	#elif gtk
 	#if gtk
 		(void) flags;
@@ -187,7 +190,8 @@ GuiWindow GuiWindow_create (int x, int y, int width, int height, int minimumWidt
 unsigned long theGuiTopLowAccelerators [8];
 
 void GuiWindow_addMenuBar (GuiWindow me) {
-	#if gtk
+    #if sdl
+	#elif gtk
 		my d_gtkMenuBar = (GtkMenuBar *) gtk_menu_bar_new ();
 		_GuiObject_setUserData (my d_gtkMenuBar, me);
 		my v_positionInForm (my d_gtkMenuBar, 0, 0, 0, Machine_getMenuBarHeight (), me);   // BUG?
@@ -211,7 +215,10 @@ void GuiWindow_addMenuBar (GuiWindow me) {
 }
 
 bool GuiWindow_setDirty (GuiWindow me, bool dirty) {
-	#if gtk
+    #if sdl
+        (void) dirty;
+        return false;
+	#elif gtk
 		(void) dirty;
 		return false;
 	#elif motif

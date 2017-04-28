@@ -152,7 +152,7 @@ GuiMenuItem GuiMenu_addItem (GuiMenu menu, const char32 *title, uint32 flags,
 	Melder_assert (title);
     #if sdl
         GuiWindow window = (GuiWindow) my d_shell;
-        my d_widget =new CmdMenu(new Button(window->d_sdlWindow ,Style(2,1,20),Rect(5,90,50,20),_Label((char *)title),[](Button* but) {
+        my d_widget =new Button(window->d_sdlWindow ,Style(2,1,20),Rect(5,90,50,20),_Label((char *)title),[](Button* but) {
             /*if (!menu->init(100,7,menu_cmd)) return;
             menu->add_mbut("set rbut nr, title");
             menu->add_mbut("window info");
@@ -161,7 +161,9 @@ GuiMenuItem GuiMenu_addItem (GuiMenu menu, const char32 *title, uint32 flags,
             menu->add_mbut("choose file");
             menu->add_mbut("change wdir");
             menu->add_mbut("print widget tree");*/
-        }));
+        });
+        new CmdMenu(((Button *)my d_widget));
+        _GuiObject_setUserData (my d_widget, me.get());
 	#elif gtk
 		static GSList *group = nullptr;
 		if (toggle) {

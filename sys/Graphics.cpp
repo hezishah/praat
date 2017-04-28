@@ -44,7 +44,8 @@ void structGraphics :: v_destroy () noexcept {
 
 static void computeTrafo (Graphics me) {
 	double worldScaleX, worldScaleY, workScaleX, workScaleY;
-	Melder_assert (my d_x2WC != my d_x1WC);
+    trace(U"d_x1WC=%f d_x2WC=%f",my d_x1WC,my d_x2WC);
+    Melder_assert (my d_x2WC != my d_x1WC);
 	worldScaleX = (my d_x2NDC - my d_x1NDC) / (my d_x2WC - my d_x1WC);
 	Melder_assert (my d_y2WC != my d_y1WC);
 	worldScaleY = (my d_y2NDC - my d_y1NDC) / (my d_y2WC - my d_y1WC);
@@ -128,6 +129,7 @@ int Graphics_getResolution (Graphics me) {
 void Graphics_setWsViewport (Graphics me,
 	long x1DC, long x2DC, long y1DC, long y2DC)
 {
+    trace(U"x1DC x2DC y1DC y2DC", x1DC,x2DC,y1DC,y2DC);
 	if (x1DC < my d_x1DCmin || x2DC > my d_x2DCmax || y1DC < my d_y1DCmin || y2DC > my d_y2DCmax) {
 		Melder_warning (U"Graphics_setWsViewport: coordinates too large:\n",
 			x1DC, U"..", x2DC, U" x ", y1DC, U"..", y2DC,

@@ -438,8 +438,9 @@ static int GraphicsScreen_init (GraphicsScreen me, void *voidDisplay, void *void
 
 	/* Fill in new members. */
     #if sdl
-    /* Todo : Figure out Window Resolution */
-    my top_win=my d_drawingArea->d_shell->d_sdlWindow;
+        /* Todo : Figure out Window Resolution */
+        my top_win=my d_drawingArea->d_shell->d_sdlWindow;
+        printf("%s:%d",__FUNCTION__,__LINE__);
 	#elif cairo
 		my d_display = (GdkDisplay *) gdk_display_get_default ();
 		_GraphicsScreen_text_init (me);
@@ -546,6 +547,10 @@ autoGraphics Graphics_create_xmdrawingarea (GuiDrawingArea w) {
     #if sdl
     
 	#elif gtk
+        int width, height;
+    #elif gtk
+    
+	#elif gtk
 	#if cairo
 		GtkRequisition realsize;
 		GtkAllocation allocation;
@@ -592,7 +597,8 @@ autoGraphics Graphics_create_xmdrawingarea (GuiDrawingArea w) {
 								 my d_drawingArea -> d_widget);
 	#else
         #if sdl
-            
+            Graphics_init (me.get(), Gui_getResolution (my d_drawingArea -> d_widget));
+            GraphicsScreen_init (me.get(), my d_drawingArea -> d_widget, my d_drawingArea -> d_widget);
         #elif gtk
 			Graphics_init (me.get(), Gui_getResolution (my d_drawingArea -> d_widget));
 			GraphicsScreen_init (me.get(), GTK_WIDGET (my d_drawingArea -> d_widget), GTK_WIDGET (my d_drawingArea -> d_widget));
@@ -605,7 +611,9 @@ autoGraphics Graphics_create_xmdrawingarea (GuiDrawingArea w) {
 
 	#if gtk
     #if sdl
-        
+        width = ((WinBase *)(my d_drawingArea -> d_widget)) -> tw_area.w;
+        height = ((WinBase *)(my d_drawingArea -> d_widget)) -> tw_area.h;
+        Graphics_setWsViewport (me.get(), 0.0, width, 0.0, height);
     #elif gtk
 	#if cairo
 		// fb: is really the request meant or rather the actual size, aka allocation?

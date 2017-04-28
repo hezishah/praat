@@ -424,7 +424,10 @@ void structGraphicsPostscript :: v_fillRectangle (double x1DC, double x2DC, doub
 
 void structGraphicsScreen :: v_circle (double xDC, double yDC, double rDC) {
     #if sdl
-        circleColor(top_win->render.render,xDC, yDC, rDC,0x0);
+        SDL_PixelFormat fmt;
+        memset(&fmt,0,sizeof(fmt));
+        fmt.format = SDL_GetWindowPixelFormat(top_win->window);
+        circleColor(top_win->render.render,xDC, yDC, rDC,SDL_MapRGB(&fmt,cForeground.r,cForeground.g,cForeground.b));
     #elif cairo
 		if (duringXor) {
 			#if ALLOW_GDK_DRAWING
@@ -465,7 +468,10 @@ void structGraphicsPostscript :: v_circle (double xDC, double yDC, double rDC) {
 void structGraphicsScreen :: v_ellipse (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
     #if sdl
-        ellipseColor(top_win->render.render, x1DC, x2DC, y1DC, y2DC, 0x0);
+        SDL_PixelFormat fmt;
+        memset(&fmt,0,sizeof(fmt));
+        fmt.format = SDL_GetWindowPixelFormat(top_win->window);
+        ellipseColor(top_win->render.render, x1DC, x2DC, y1DC, y2DC, SDL_MapRGB(&fmt,cForeground.r,cForeground.g,cForeground.b));
 	#elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairoPrepareLine (this);
@@ -515,7 +521,10 @@ void structGraphicsPostscript :: v_ellipse (double x1DC, double x2DC, double y1D
 
 void structGraphicsScreen :: v_arc (double xDC, double yDC, double rDC, double fromAngle, double toAngle) {
     #if sdl
-        arcColor(top_win->render.render, xDC, yDC, rDC, fromAngle, toAngle, 0x0);
+        SDL_PixelFormat fmt;
+        memset(&fmt,0,sizeof(fmt));
+        fmt.format = SDL_GetWindowPixelFormat(top_win->window);
+        arcColor(top_win->render.render, xDC, yDC, rDC, fromAngle, toAngle, SDL_MapRGB(&fmt,cForeground.r,cForeground.g,cForeground.b));
     #elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairoPrepareLine (this);
@@ -552,7 +561,10 @@ void structGraphicsPostscript :: v_arc (double xDC, double yDC, double rDC, doub
 
 void structGraphicsScreen :: v_fillCircle (double xDC, double yDC, double rDC) {
     #if sdl
-        filledCircleColor(top_win->render.render,xDC, yDC, rDC,0x0);
+        SDL_PixelFormat fmt;
+        memset(&fmt,0,sizeof(fmt));
+        fmt.format = SDL_GetWindowPixelFormat(top_win->window);
+        filledCircleColor(top_win->render.render,xDC, yDC, rDC,SDL_MapRGB(&fmt,cForeground.r,cForeground.g,cForeground.b));
     #elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairo_new_path (d_cairoGraphicsContext);
@@ -584,7 +596,10 @@ void structGraphicsPostscript :: v_fillCircle (double xDC, double yDC, double rD
 void structGraphicsScreen :: v_fillEllipse (double x1DC, double x2DC, double y1DC, double y2DC) {
 	ORDER_DC
     #if sdl
-        filledEllipseColor(top_win->render.render, x1DC, x2DC, y1DC, y2DC, 0x0);
+        SDL_PixelFormat fmt;
+        memset(&fmt,0,sizeof(fmt));
+        fmt.format = SDL_GetWindowPixelFormat(top_win->window);
+        filledEllipseColor(top_win->render.render, x1DC, x2DC, y1DC, y2DC, SDL_MapRGB(&fmt,cForeground.r,cForeground.g,cForeground.b));
 	#elif cairo
 		if (! d_cairoGraphicsContext) return;
 		cairo_new_path (d_cairoGraphicsContext);

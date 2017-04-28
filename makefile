@@ -53,6 +53,7 @@ clean:
 	$(MAKE) -C external/flac clean
 	$(MAKE) -C external/portaudio clean
 	$(MAKE) -C external/espeak clean
+	$(MAKE) -C external/SDL2-widgets clean
 	$(MAKE) -C kar clean
 	$(MAKE) -C num clean
 	$(MAKE) -C sys clean
