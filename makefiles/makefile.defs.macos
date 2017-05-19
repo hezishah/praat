@@ -17,7 +17,7 @@ LINK = g++
 
 EXECUTABLE = praat
 
-LIBS = $$(sdl2-config --libs) -lSDL2_ttf
+LIBS = $$(sdl2-config --libs) -lSDL2_ttf -lpthread
 
 AR = ar
 RANLIB = ranlib

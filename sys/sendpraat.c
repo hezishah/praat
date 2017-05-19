@@ -52,7 +52,7 @@
 	#if defined (NO_GRAPHICS)
 		#define gtk 0
 	#else
-        #if defined (emscripten)
+        #if defined (emscripten) || (defined(sdl) && sdl==1)
             #define gtk 0
             #define sdl 1
             #include <SDL.h>

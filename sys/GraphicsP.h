@@ -70,7 +70,7 @@ Thing_define (GraphicsScreen, Graphics) {
 	#elif cairo
         #if sdl
             TopWin *top_win;
-        #elif gdk
+        #else
             GdkDisplay *d_display;
             #if ALLOW_GDK_DRAWING
                 GdkDrawable *d_window;
