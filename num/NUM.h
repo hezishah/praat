@@ -52,6 +52,7 @@
 void NUMinit ();
 
 double NUMpow (double base, double exponent);   /* Zero for non-positive base. */
+void NUMshift (double *x, double xto);
 void NUMshift (double *x, double xfrom, double xto);
 void NUMscale (double *x, double xminfrom, double xmaxfrom, double xminto, double xmaxto);
 

@@ -61,16 +61,21 @@ void Graphics_init (Graphics me, int resolution);
 	#define gdi 0
 	#define direct2d 0
 	#define quartz 1   /* Quartz, including CoreText */
+#elif sdl
+#define cairo 0
+#define gdi 0
+#define direct2d 0
+#define quartz 0   /* Quartz, including CoreText */
 #endif
 
 Thing_define (GraphicsScreen, Graphics) {
 	bool d_isPng;
 	structMelderFile d_file;
 	#if defined (NO_GRAPHICS)
+    #elif sdl
+        TopWin *top_win;
 	#elif cairo
-        #if sdl
-            TopWin *top_win;
-        #else
+        #if 1
             GdkDisplay *d_display;
             #if ALLOW_GDK_DRAWING
                 GdkDrawable *d_window;

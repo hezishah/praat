@@ -1246,11 +1246,9 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 	 * Measure the size of each character.
 	 */
 	_Graphics_widechar *character;
-	#if cocoa
     #if sdl
         /* Todo - Measure char size */
-	#elif cocoa
-	#if quartz || cairo
+	#elif quartz || cairo
 		#if cairo
 			if (! ((GraphicsScreen) me) -> d_cairoGraphicsContext) return;
 		#endif

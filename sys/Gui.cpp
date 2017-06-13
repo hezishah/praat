@@ -92,8 +92,7 @@ void Gui_getWindowPositioningBounds (double *x, double *y, double *width, double
 		if (width) *width = monitorInfo. rcWork. right - monitorInfo. rcWork. left;
 		if (height) *height = monitorInfo. rcWork.bottom - monitorInfo. rcWork.top /*- GetSystemMetrics (SM_CYMINTRACK)*/;   // SM_CXSIZEFRAME  SM_CYCAPTION
 		#endif
-	#elif gtk
-    #if sdl
+    #elif sdl
         SDL_DisplayMode current;
         SDL_GetCurrentDisplayMode(0, &current);
         if (x) *x = 0;
@@ -164,6 +163,7 @@ void Gui_getWindowPositioningBounds (double *x, double *y, double *width, double
 		if (y) *y = 0;
 		if (width) *width = WidthOfScreen (DefaultScreenOfDisplay (XtDisplay (parent)));
 		if (height) *height = HeightOfScreen (DefaultScreenOfDisplay (XtDisplay (parent)));
+        #endif
 	#elif motif
 		#if 1
 			RECT rect;
